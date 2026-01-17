@@ -1,2 +1,2 @@
-# SFS1.6translator
-Translator for sfs1.6
+# SFS1.6Chinese
+sfs1.6.00.7汉化版本
