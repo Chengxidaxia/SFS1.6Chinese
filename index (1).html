@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XUnity.AutoTranslator 富文本编辑器</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #2a5298);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-weight: 700;
+            font-size: 2.2rem;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #ff8a00, #e52e71);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #e0e0e0;
+            max-width: 600px;
+            margin: 0 auto 20px;
+            line-height: 1.6;
+        }
+        
+        .card {
+            margin-bottom: 25px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        h2 {
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            color: #a8d8ff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        select option {
+            background: #2a5298;
+            color: white;
+        }
+        
+        /* 选中的选项样式 */
+        select option:checked {
+            background: #4a9eff;
+            color: white;
+        }
+        
+        /* 未选中的选项样式 */
+        select option:not(:checked) {
+            background: #3a4a7a;
+            color: #ccc;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 0 2px rgba(100, 150, 255, 0.5);
+        }
+        
+        .color-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        #colorPicker {
+            width: 70px;
+            height: 50px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            cursor: pointer;
+        }
+        
+        .color-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .color-value {
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+        }
+        
+        .preview-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .preview-section {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .preview-box {
+            min-height: 120px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            word-break: break-all;
+            text-align: center;
+        }
+        
+        .preview-title {
+            font-size: 1rem;
+            color: #a8d8ff;
+            margin-bottom: 10px;
+        }
+        
+        .styled-content {
+            font-size: 1.6rem;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            width: 100%;
+            text-align: center;
+            line-height: 1.5;
+        }
+        
+        .code-preview {
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            width: 100%;
+            font-size: 1.1rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        
+        button {
+            padding: 14px 25px;
+            border: none;
+            border-radius: 10px;
+            background: #4a9eff;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background: #2d8cff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .instructions {
+            margin-top: 30px;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 15px;
+            color: #a8d8ff;
+            font-size: 1.3rem;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .example {
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 15px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-top: 8px;
+            font-size: 1.1rem;
+        }
+        
+        .message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-weight: 500;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.3s, fadeOut 0.3s 2.7s;
+        }
+        
+        .message.success {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .message.error {
+            background: #f44336;
+            color: white;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-20px); }
+        }
+        
+        .plugin-info {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            text-align: center;
+        }
+        
+        .tag-selector {
+            display: none;
+            margin-bottom: 20px;
+        }
+        
+        .tag-info {
+            font-size: 0.9rem;
+            color: #a8d8ff;
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .no-color-section {
+            display: none;
+            margin-top: 15px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #a8d8ff;
+        }
+        
+        .entry-selector {
+            margin-bottom: 20px;
+        }
+        
+        .segment-selector {
+            margin-bottom: 20px;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .download-section {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .download-button {
+            background: linear-gradient(135deg, #ff8a00, #e52e71);
+            font-size: 1.2rem;
+            padding: 16px 30px;
+            margin-top: 0;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+        
+        .download-button:hover {
+            background: linear-gradient(135deg, #e57a00, #d41e61);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .add-color-section {
+            text-align: center;
+            margin-top: 15px;
+        }
+        
+        .add-color-button {
+            background: linear-gradient(135deg, #00c853, #00e676);
+            font-size: 1rem;
+            padding: 12px 20px;
+            max-width: 250px;
+            margin: 0 auto;
+        }
+        
+        .add-color-button:hover {
+            background: linear-gradient(135deg, #00b34a, #00d46a);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>XUnity.AutoTranslator 富文本编辑器</h1>
+            <p class="subtitle">支持单行内多个color标签的富文本标记编辑器</p>
+        </header>
+        
+        <!-- 下载按钮部分 - 移到最上方 -->
+        <div class="download-section">
+            <button id="downloadButton" class="download-button">
+                <span class="icon">⬇️</span> 点击下载SFStran
+            </button>
+        </div>
+        
+        <div class="card">
+            <h2><span class="icon">📥</span> 输入XUnity格式文本</h2>
+            <div class="input-group">
+                <label for="originalText">请输入XUnity.AutoTranslator格式的文本：</label>
+                <textarea id="originalText" rows="4" placeholder="例如：
+system_message=<color\=#FF0000>系统</color><color\=#00FF00>提示</color>
+dialog_title=<color\=#FF5733>对话标题</color>
+no_color_message=普通文本（无颜色标签）"></textarea>
+            </div>
+            <button id="parseButton">
+                <span class="icon">🔍</span> 解析文本
+            </button>
+        </div>
+        
+        <div class="card">
+            <h2><span class="icon">✏️</span> 编辑内容</h2>
+            
+            <div class="entry-selector">
+                <label for="entrySelect">选择要编辑的条目：</label>
+                <select id="entrySelect">
+                    <option value="0">条目 1</option>
+                </select>
+            </div>
+            
+            <div class="segment-selector hidden" id="segmentSelector">
+                <label for="segmentSelect">选择要编辑的片段：</label>
+                <select id="segmentSelect">
+                    <option value="0">片段 1</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label for="contentInput">编辑文本内容：</label>
+                <textarea id="contentInput" rows="3" placeholder="输入新的文本内容"></textarea>
+            </div>
+            
+            <div class="input-group" id="colorSection">
+                <label>选择文本颜色：</label>
+                <div class="color-section">
+                    <input type="color" id="colorPicker" value="#FFFFFF">
+                    <div class="color-info">
+                        <div class="color-value" id="colorValue">#FFFFFF</div>
+                        <small>点击色块选择颜色</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="no-color-section" id="noColorSection">
+                当前文本没有color标签，游戏内将显示默认白色
+            </div>
+            
+            <!-- 添加颜色标签按钮 -->
+            <div class="add-color-section hidden" id="addColorSection">
+                <button id="addColorButton" class="add-color-button">
+                    <span class="icon">🎨</span> 添加颜色标签
+                </button>
+            </div>
+            
+            <div class="tag-info" id="tagInfo">
+                当前编辑: 条目 1
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2><span class="icon">👁️</span> 预览效果</h2>
+            <div class="preview-section">
+                <div class="preview-box">
+                    <div class="preview-title">文本效果预览</div>
+                    <div id="styledPreview" class="styled-content">预览将在此显示</div>
+                </div>
+                <div class="preview-box">
+                    <div class="preview-title">XUnity.AutoTranslator格式</div>
+                    <div id="codePreview" class="code-preview">代码将在此显示</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card instructions">
+            <h3><span class="icon">ℹ️</span> 使用说明</h3>
+            <ul>
+                <li>此编辑器专为XUnity.AutoTranslator插件设计，支持单行内多个color标签</li>
+                <li>在"输入XUnity格式文本"区域输入XUnity.AutoTranslator格式的文本（支持多行）</li>
+                <li>支持单行内多个color标签，例如：<code>text=&lt;color\=#FF0000&gt;红色&lt;/color&gt;&lt;color\=#00FF00&gt;绿色&lt;/color&gt;</code></li>
+                <li>文本可以没有color标签，游戏内将显示默认白色</li>
+                <li>点击"解析文本"按钮提取所有条目和片段</li>
+                <li>使用条目选择器选择要编辑的条目</li>
+                <li>当条目有多个color标签时，可以使用片段选择器选择要编辑的片段</li>
+                <li>在"编辑内容"区域修改文本内容</li>
+                <li>使用颜色选择器更改文本颜色</li>
+                <li>对于没有color标签的文本，可以使用"添加颜色标签"按钮为其添加颜色</li>
+                <li>预览区域将实时显示修改后的效果和XUnity格式代码</li>
+            </ul>
+            <div class="plugin-info">
+                <strong>关于XUnity.AutoTranslator：</strong>这是一款Unity游戏翻译插件，支持使用富文本标记为游戏文本添加颜色和样式。使用<code>&lt;color\=#RRGGBB&gt;文本&lt;/color&gt;</code>格式可以改变文本颜色。没有color标签时游戏内显示默认白色。
+            </div>
+            <p>示例输入: 
+                <span class="example">system_message=&lt;color\=#FF0000&gt;系统&lt;/color&gt;&lt;color\=#00FF00&gt;提示&lt;/color&gt;</span><br>
+                <span class="example">no_color=普通文本（无颜色标签）</span>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取DOM元素
+            const originalTextInput = document.getElementById('originalText');
+            const parseButton = document.getElementById('parseButton');
+            const entrySelect = document.getElementById('entrySelect');
+            const segmentSelector = document.getElementById('segmentSelector');
+            const segmentSelect = document.getElementById('segmentSelect');
+            const tagInfo = document.getElementById('tagInfo');
+            const contentInput = document.getElementById('contentInput');
+            const colorSection = document.getElementById('colorSection');
+            const colorPicker = document.getElementById('colorPicker');
+            const colorValue = document.getElementById('colorValue');
+            const noColorSection = document.getElementById('noColorSection');
+            const addColorSection = document.getElementById('addColorSection');
+            const addColorButton = document.getElementById('addColorButton');
+            const styledPreview = document.getElementById('styledPreview');
+            const codePreview = document.getElementById('codePreview');
+            const downloadButton = document.getElementById('downloadButton');
+            
+            // 存储解析结果
+            let parsedEntries = [];
+            let currentEntryIndex = 0;
+            let currentSegmentIndex = 0;
+            
+            // 解析文本
+            parseButton.addEventListener('click', function() {
+                const text = originalTextInput.value.trim();
+                
+                // 按行分割文本
+                const lines = text.split('\n');
+                parsedEntries = [];
+                
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    // 分离键和值
+                    const equalsIndex = line.indexOf('=');
+                    if (equalsIndex === -1) continue;
+                    
+                    const key = line.substring(0, equalsIndex);
+                    const value = line.substring(equalsIndex + 1);
+                    
+                    // 检测是否有color标签
+                    const hasColorTag = value.includes('<color\\=') && value.includes('</color>');
+                    
+                    if (hasColorTag) {
+                        // 解析所有color标签
+                        const segments = [];
+                        let remainingValue = value;
+                        
+                        // 使用正则表达式匹配所有color标签
+                        const colorRegex = /<color\\=([^>]+)>([^<]*)<\/color>/g;
+                        let match;
+                        let lastIndex = 0;
+                        
+                        while ((match = colorRegex.exec(value)) !== null) {
+                            // 添加匹配前的文本（如果有）
+                            if (match.index > lastIndex) {
+                                segments.push({
+                                    type: 'text',
+                                    content: value.substring(lastIndex, match.index)
+                                });
+                            }
+                            
+                            // 添加color标签
+                            segments.push({
+                                type: 'color',
+                                color: match[1],
+                                content: match[2]
+                            });
+                            
+                            lastIndex = match.index + match[0].length;
+                        }
+                        
+                        // 添加剩余的文本（如果有）
+                        if (lastIndex < value.length) {
+                            segments.push({
+                                type: 'text',
+                                content: value.substring(lastIndex)
+                            });
+                        }
+                        
+                        parsedEntries.push({
+                            key: key,
+                            segments: segments,
+                            hasColorTag: true,
+                            originalValue: value
+                        });
+                    } else {
+                        // 没有color标签
+                        parsedEntries.push({
+                            key: key,
+                            segments: [{
+                                type: 'text',
+                                content: value
+                            }],
+                            hasColorTag: false,
+                            originalValue: value
+                        });
+                    }
+                }
+                
+                if (parsedEntries.length > 0) {
+                    // 更新条目选择器
+                    updateEntrySelector();
+                    
+                    // 更新片段选择器
+                    updateSegmentSelector();
+                    
+                    // 设置当前编辑的条目和片段
+                    currentEntryIndex = 0;
+                    currentSegmentIndex = 0;
+                    updateEditor();
+                    
+                    // 更新预览
+                    updatePreview();
+                    
+                    // 显示成功消息
+                    showMessage(`成功解析 ${parsedEntries.length} 个条目！`, 'success');
+                } else {
+                    showMessage('格式错误！请确保输入符合 XUnity.AutoTranslator 格式', 'error');
+                }
+            });
+            
+            // 下载按钮点击事件
+            downloadButton.addEventListener('click', function() {
+                window.open('https://github.com/Chengxidaxia/SFS1.5.10.2-tran/releases/download/latest/SFStran1.5.10.2.exe', '_blank');
+            });
+            
+            // 添加颜色标签按钮点击事件
+            addColorButton.addEventListener('click', function() {
+                const currentEntry = parsedEntries[currentEntryIndex];
+                if (!currentEntry) return;
+                
+                // 获取当前文本内容
+                const content = contentInput.value;
+                
+                // 使用当前颜色选择器的颜色
+                const color = colorPicker.value;
+                
+                // 更新条目数据结构
+                currentEntry.hasColorTag = true;
+                currentEntry.originalValue = `<color\\=${color}>${content}</color>`;
+                currentEntry.segments = [{
+                    type: 'color',
+                    color: color,
+                    content: content
+                }];
+                
+                // 更新编辑器
+                updateEditor();
+                
+                // 更新预览
+                updatePreview();
+                
+                // 显示成功消息
+                showMessage('已添加颜色标签！', 'success');
+            });
+            
+            // 更新条目选择器
+            function updateEntrySelector() {
+                entrySelect.innerHTML = '';
+                
+                for (let i = 0; i < parsedEntries.length; i++) {
+                    const entry = parsedEntries[i];
+                    const option = document.createElement('option');
+                    option.value = i;
+                    
+                    // 显示条目键名和是否有颜色标签
+                    let colorInfo = entry.hasColorTag ? '有颜色' : '无颜色';
+                    option.textContent = `${entry.key} (${colorInfo})`;
+                    entrySelect.appendChild(option);
+                }
+            }
+            
+            // 更新片段选择器
+            function updateSegmentSelector() {
+                segmentSelect.innerHTML = '';
+                
+                const currentEntry = parsedEntries[currentEntryIndex];
+                if (!currentEntry) return;
+                
+                const segments = currentEntry.segments;
+                
+                // 只有当有多个片段时才显示片段选择器
+                if (segments.length > 1) {
+                    segmentSelector.classList.remove('hidden');
+                    
+                    for (let i = 0; i < segments.length; i++) {
+                        const segment = segments[i];
+                        const option = document.createElement('option');
+                        option.value = i;
+                        
+                        // 使用实际文本内容作为选项文本
+                        let displayText = segment.content;
+                        
+                        // 如果文本过长，截断显示
+                        if (displayText.length > 20) {
+                            displayText = displayText.substring(0, 20) + '...';
+                        }
+                        
+                        // 如果是空文本，显示占位符
+                        if (displayText === '') {
+                            displayText = '(空文本)';
+                        }
+                        
+                        // 添加类型标识
+                        if (segment.type === 'color') {
+                            option.textContent = `🎨 ${displayText}`;
+                        } else {
+                            option.textContent = `📝 ${displayText}`;
+                        }
+                        
+                        // 添加完整文本作为提示
+                        option.title = segment.content;
+                        
+                        segmentSelect.appendChild(option);
+                    }
+                } else {
+                    segmentSelector.classList.add('hidden');
+                }
+            }
+            
+            // 条目选择器变化事件
+            entrySelect.addEventListener('change', function() {
+                currentEntryIndex = parseInt(this.value);
+                currentSegmentIndex = 0;
+                updateSegmentSelector();
+                updateEditor();
+                updatePreview();
+            });
+            
+            // 片段选择器变化事件
+            segmentSelect.addEventListener('change', function() {
+                currentSegmentIndex = parseInt(this.value);
+                updateEditor();
+                updatePreview();
+            });
+            
+            // 更新编辑器内容
+            function updateEditor() {
+                if (parsedEntries.length > currentEntryIndex) {
+                    const currentEntry = parsedEntries[currentEntryIndex];
+                    const segments = currentEntry.segments;
+                    
+                    if (segments.length > currentSegmentIndex) {
+                        const currentSegment = segments[currentSegmentIndex];
+                        
+                        // 更新内容输入框
+                        contentInput.value = currentSegment.content;
+                        
+                        // 根据片段类型显示/隐藏颜色选择器
+                        if (currentSegment.type === 'color') {
+                            colorSection.style.display = 'block';
+                            noColorSection.style.display = 'none';
+                            addColorSection.classList.add('hidden');
+                            
+                            // 更新颜色选择器
+                            if (isValidColor(currentSegment.color)) {
+                                colorPicker.value = currentSegment.color;
+                                colorValue.textContent = currentSegment.color;
+                            }
+                        } else {
+                            colorSection.style.display = 'none';
+                            noColorSection.style.display = 'block';
+                            addColorSection.classList.remove('hidden');
+                        }
+                        
+                        // 更新标签信息
+                        const segmentType = currentSegment.type === 'color' ? '颜色片段' : '文本片段';
+                        tagInfo.textContent = `当前编辑: ${currentEntry.key} - ${segmentType} (${currentSegment.content})`;
+                    }
+                }
+            }
+            
+            // 更新预览
+            function updatePreview() {
+                // 更新样式预览 - 显示整个条目的效果
+                if (parsedEntries.length > currentEntryIndex) {
+                    const currentEntry = parsedEntries[currentEntryIndex];
+                    let styledHtml = '';
+                    
+                    for (let i = 0; i < currentEntry.segments.length; i++) {
+                        const segment = currentEntry.segments[i];
+                        
+                        // 如果是当前编辑的片段，使用编辑器的值
+                        const content = (i === currentSegmentIndex) ? contentInput.value : segment.content;
+                        
+                        if (segment.type === 'color') {
+                            // 如果是当前编辑的片段，使用编辑器的颜色
+                            const color = (i === currentSegmentIndex) ? colorPicker.value : segment.color;
+                            styledHtml += `<span style="color: ${color}">${content}</span>`;
+                        } else {
+                            styledHtml += `<span>${content}</span>`;
+                        }
+                    }
+                    
+                    styledPreview.innerHTML = styledHtml;
+                }
+                
+                // 更新代码预览 - 显示所有条目
+                let fullCode = '';
+                for (let i = 0; i < parsedEntries.length; i++) {
+                    const entry = parsedEntries[i];
+                    
+                    // 如果是当前编辑的条目，使用编辑器的值
+                    if (i === currentEntryIndex) {
+                        let entryValue = '';
+                        
+                        for (let j = 0; j < entry.segments.length; j++) {
+                            const segment = entry.segments[j];
+                            
+                            // 如果是当前编辑的片段，使用编辑器的值
+                            const content = (j === currentSegmentIndex) ? contentInput.value : segment.content;
+                            
+                            if (segment.type === 'color') {
+                                // 如果是当前编辑的片段，使用编辑器的颜色
+                                const color = (j === currentSegmentIndex) ? colorPicker.value : segment.color;
+                                entryValue += `<color\\=${color}>${content}</color>`;
+                            } else {
+                                entryValue += content;
+                            }
+                        }
+                        
+                        fullCode += `${entry.key}=${entryValue}\n`;
+                    } else {
+                        // 其他条目保持原样
+                        fullCode += `${entry.key}=${entry.originalValue}\n`;
+                    }
+                }
+                codePreview.textContent = fullCode.trim();
+            }
+            
+            // 监听内容变化
+            contentInput.addEventListener('input', updatePreview);
+            
+            // 监听颜色变化
+            colorPicker.addEventListener('input', function() {
+                colorValue.textContent = colorPicker.value;
+                updatePreview();
+            });
+            
+            // 辅助函数：验证颜色格式
+            function isValidColor(color) {
+                const s = new Option().style;
+                s.color = color;
+                return s.color !== '';
+            }
+            
+            // 显示消息
+            function showMessage(message, type) {
+                // 移除现有消息
+                const existingMessage = document.querySelector('.message');
+                if (existingMessage) {
+                    existingMessage.remove();
+                }
+                
+                // 创建新消息
+                const messageEl = document.createElement('div');
+                messageEl.textContent = message;
+                messageEl.className = `message ${type}`;
+                
+                document.body.appendChild(messageEl);
+                
+                // 3秒后自动移除
+                setTimeout(() => {
+                    if (messageEl.parentNode) {
+                        messageEl.parentNode.removeChild(messageEl);
+                    }
+                }, 3000);
+            }
+            
+            // 初始化示例
+            originalTextInput.value = "system_message=<color\\=#FF0000>系统</color><color\\=#00FF00>提示</color>\ndialog_title=<color\\=#FF5733>对话标题</color>\nno_color_message=普通文本（无颜色标签）";
+            parseButton.click();
+        });
+    </script>
+</body>
+</html>
