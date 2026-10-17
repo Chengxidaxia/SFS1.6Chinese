@@ -5,3 +5,5 @@ sfs1.6汉化版本
 SFS汉化版解压密码为:
 
 *3977216899*
+
+项目依赖于 XUnity.AutoTranslator（MIT License）。
